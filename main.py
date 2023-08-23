@@ -80,12 +80,37 @@ def process_image(filename):
             os.makedirs(target_dir_name)
             shutil.copy2(filename, output_file)
     else:
-        pass
+        if os.stat(filename).st_size > os.stat(output_file).st_size:
+            try:
+                shutil.copy2(filename, output_file)
+            except:
+                return
+
 
 
 def run_multiprocessing(func, i, n_processors):
     with Pool(processes=n_processors) as pool:
         return pool.map(func, i)
+
+
+class ProgressTracker:
+    def __init__(self, expected_total):
+        self.total = expected_total
+        self.start_time = datetime.datetime.now()
+        self.processed = 0
+
+    def start_processing(self):
+        print('Start processing {number} files at {time}'.format(
+            number=self.total,
+            time=self.start_time.strftime('%Y-%m-%d %H:%M:%S')))
+
+    def report_execution(self):
+        self.processed += 1
+        print('Processed {ready} items or {percent} in {timedelta}'.format(
+            ready=self.processed,
+            percent=100 * self.processed / self.total,
+            timedelta=(datetime.datetime.now() - self.start_time).seconds
+        ))
 
 
 if __name__ == '__main__':
